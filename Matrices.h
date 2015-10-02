@@ -75,6 +75,11 @@ public:
     PTMatrix operator-(const PTMatrix& other) const;
     PTMatrix operator-=(const PTMatrix& other);
     
+    PTMatrix operator>(const PTMatrix& other) const;
+    PTMatrix operator<(const PTMatrix& other) const;
+    PTMatrix operator>=(const PTMatrix& other) const;
+    PTMatrix operator<=(const PTMatrix& other) const;
+    
     bool operator==(const PTMatrix& other) const;
     bool operator!=(const PTMatrix& other) const;
     
@@ -115,6 +120,12 @@ public:
     //matrices substruction (STILL NOT WORKING)
     EncryptedMatrix operator-(const EncryptedMatrix& other) const;
     EncryptedMatrix operator-=(const EncryptedMatrix& other);
+    
+    //the comparing operators (<, >, <= and >=) WORKING ONLY FOR BINARY FIELDS (P=2)
+    EncryptedMatrix operator>(const EncryptedMatrix& other) const;
+    EncryptedMatrix operator<(const EncryptedMatrix& other) const;
+    EncryptedMatrix operator>=(const EncryptedMatrix& other) const;
+    EncryptedMatrix operator<=(const EncryptedMatrix& other) const;
     
     //Comparison, based on HElib's Ctxt:operator==
     bool operator==(const EncryptedMatrix& other) const;
