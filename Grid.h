@@ -52,6 +52,11 @@ public:
     PTMatrixGrid operator-(const PTMatrixGrid& other) const;
     PTMatrixGrid operator-=(const PTMatrixGrid& other);
     
+    PTMatrixGrid operator>(const PTMatrixGrid& other) const;
+    PTMatrixGrid operator<(const PTMatrixGrid& other) const;
+    PTMatrixGrid operator>=(const PTMatrixGrid& other) const;
+    PTMatrixGrid operator<=(const PTMatrixGrid& other) const;
+    
     //Grids comparison
     bool operator==(const PTMatrixGrid& other) const;
     bool operator!=(const PTMatrixGrid& other) const;
@@ -109,6 +114,11 @@ public:
     //Grids Substraction
     EncryptedMatrixGrid operator-(const EncryptedMatrixGrid& other) const;
     EncryptedMatrixGrid operator-=(const EncryptedMatrixGrid& other);
+    
+    EncryptedMatrixGrid operator>(const EncryptedMatrixGrid& other) const;
+    EncryptedMatrixGrid operator<(const EncryptedMatrixGrid& other) const;
+    EncryptedMatrixGrid operator>=(const EncryptedMatrixGrid& other) const;
+    EncryptedMatrixGrid operator<=(const EncryptedMatrixGrid& other) const;
     
     //Grids comparison. Again, it based on Ctxt:operator==
     bool operator==(const EncryptedMatrixGrid& other) const;

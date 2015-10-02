@@ -125,6 +125,106 @@ bool PTMatrixGrid::push(const PTMatrixGrid& other){
     return true;
 }
 
+//operators
+//Grids multiplication
+PTMatrixGrid PTMatrixGrid::operator*(const PTMatrixGrid& other) const {
+    if(getGridSize().canMultiply(other.getGridSize())) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    vector<vector<PTMatrix> > ret(size());
+    for(unsigned int i=0, sz1= size(); i < sz1; i++)
+        for(unsigned int j=0, sz2= other.size(); j < sz2; j++){
+            PTMatrix temp = grid[i][0]*other[0][j];
+            for(unsigned int k=1, sz3 = grid[i].size(); k < sz3; k++)
+                temp += grid[i][k]*other[k][j];
+            ret[i].push_back(temp);
+        }
+    return PTMatrixGrid(ret);
+}
+
+PTMatrixGrid PTMatrixGrid::operator*=(const PTMatrixGrid& other) { return (*this) = (*this)*other;}
+
+//Grids Addition
+PTMatrixGrid PTMatrixGrid::operator+(const PTMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize()) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    PTMatrixGrid ret = *this;
+    for(unsigned int i=0, sz1 = grid.size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++)
+            ret[i][j] += other[i][j];
+    return ret;
+}
+PTMatrixGrid PTMatrixGrid::operator+=(const PTMatrixGrid& other) { return (*this) = (*this)+other;}
+
+//Grids Substraction
+PTMatrixGrid PTMatrixGrid::operator-(const PTMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize()) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    PTMatrixGrid ret = *this;
+    for(unsigned int i=0, sz1 = grid.size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++)
+            ret[i][j] -= other[i][j];
+    return ret;
+}
+PTMatrixGrid PTMatrixGrid::operator-=(const PTMatrixGrid& other) { return (*this) = (*this)-other;}
+
+PTMatrixGrid PTMatrixGrid::operator>(const PTMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize()) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    vector<vector<PTMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[0].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] > other[i][j]);
+    return PTMatrixGrid(ret);
+}
+PTMatrixGrid PTMatrixGrid::operator<(const PTMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize()) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    vector<vector<PTMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[0].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] < other[i][j]);
+    return PTMatrixGrid(ret);
+}
+PTMatrixGrid PTMatrixGrid::operator>=(const PTMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize()) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    vector<vector<PTMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[0].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] >= other[i][j]);
+    return PTMatrixGrid(ret);
+}
+PTMatrixGrid PTMatrixGrid::operator<=(const PTMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize()) //check sizes
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    
+    vector<vector<PTMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[0].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] <= other[i][j]);
+    return PTMatrixGrid(ret);
+}
+
+//Grids comparison
+bool PTMatrixGrid::operator==(const PTMatrixGrid& other) const{
+    if(getGridSize() != other.getGridSize())
+        return false;
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++){
+            if(grid[i][j] != other[i][j])
+                return false;
+        }
+    return true;
+}
+bool PTMatrixGrid::operator!=(const PTMatrixGrid& other) const { return !((*this)==other); }
+
+
 /* ------------------------------- PTVectorGrid --------------------------------------*/
 PTVectorGrid::PTVectorGrid(const vector<long>& vec, unsigned int size){
     grid = vector<vector<long> >(vec.size()/size, vector<long>(size));
@@ -267,6 +367,46 @@ EncryptedMatrixGrid EncryptedMatrixGrid::operator-(const EncryptedMatrixGrid& ot
 }
 
 EncryptedMatrixGrid EncryptedMatrixGrid::operator-=(const EncryptedMatrixGrid& other){ return ((*this) = (*this)-other); }
+
+EncryptedMatrixGrid EncryptedMatrixGrid::operator>(const EncryptedMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize())
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    vector<vector<EncryptedMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] > other[i][j]);
+    return EncryptedMatrixGrid(ret);
+}
+
+EncryptedMatrixGrid EncryptedMatrixGrid::operator<(const EncryptedMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize())
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    vector<vector<EncryptedMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] < other[i][j]);
+    return EncryptedMatrixGrid(ret);
+}
+
+EncryptedMatrixGrid EncryptedMatrixGrid::operator>=(const EncryptedMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize())
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    vector<vector<EncryptedMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] >= other[i][j]);
+    return EncryptedMatrixGrid(ret);
+}
+
+EncryptedMatrixGrid EncryptedMatrixGrid::operator<=(const EncryptedMatrixGrid& other) const {
+    if(getGridSize() != other.getGridSize())
+        throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
+    vector<vector<EncryptedMatrix> > ret(size());
+    for(unsigned int i=0, sz1 = size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = grid[i].size(); j < sz2; j++)
+            ret[i].push_back(grid[i][j] <= other[i][j]);
+    return EncryptedMatrixGrid(ret);
+}
 
 bool EncryptedMatrixGrid::operator==(const EncryptedMatrixGrid& other) const {
     if(getGridSize() != other.getGridSize() || grid[0][0].getMatrixSize() != other[0][0].getMatrixSize())
