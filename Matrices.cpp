@@ -1,5 +1,7 @@
 #include "Matrices.h"
 
+ostringstream MatricesSizesNotMatch::cnvt;
+
 /* ----- some helping functions ------ */
 long myModulu(long num, long mod)
 //the regular modulo operator on minus numbers make trouble when trying to calculate enteries in the diagonal matrices.
@@ -190,10 +192,9 @@ MatSize PTMatrix::getMatrixSize() const { return MatSize(getRows(), getColumns()
 
 PTMatrix PTMatrix::operator*(const PTMatrix& other) const{
     //check sizes
-    if(getColumns() != other.getRows()){
-        cout << "Matrices size are not compatible. returns the first matrix" << endl;
-        return *this;
-    }
+    if(getColumns() != other.getRows())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     vector<vector<long> > res(getRows(), vector<long>(other.getColumns(),0));
     for(unsigned int i=0; i < res.size(); i++)
         for(unsigned int j=0; j < res[i].size(); j++)
@@ -207,10 +208,9 @@ PTMatrix PTMatrix::operator*=(const PTMatrix& other){ return (*this) = (*this)*o
 
 PTMatrix PTMatrix::operator+(const PTMatrix& other) const{
     //check sizes
-    if(matrix.size() != other.matrix.size() || matrix[0].size() != other.matrix[0].size()){
-        cout << "Matrices size are not compatible. returns the first matrix" << endl;
-        return *this;
-    }
+    if(matrix.size() != other.matrix.size() || matrix[0].size() != other.matrix[0].size())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     unsigned int rows = getRows(), cols = getColumns();
     vector<vector<long> > res(rows, vector<long>(cols,0));
     for(unsigned int i=0; i < rows; i++)
@@ -223,10 +223,9 @@ PTMatrix PTMatrix::operator+=(const PTMatrix& other){ return (*this) = (*this)+o
 
 PTMatrix PTMatrix::operator-(const PTMatrix& other) const{
     //check sizes
-    if(matrix.size() != other.matrix.size() || matrix[0].size() != other.matrix[0].size()){
-        cout << "Matrices size are not compatible. returns the first matrix" << endl;
-        return *this;
-    }
+    if(matrix.size() != other.matrix.size() || matrix[0].size() != other.matrix[0].size())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     unsigned int rows = getRows(), cols = getColumns();
     vector<vector<long> > res(rows, vector<long>(cols,0));
     for(unsigned int i=0; i < rows; i++)
@@ -240,10 +239,9 @@ PTMatrix PTMatrix::operator-=(const PTMatrix& other){ return (*this) = (*this)-o
 
 PTMatrix PTMatrix::operator>(const PTMatrix& other) const {
     //check sizes
-    if(matrix.size() != other.size() || matrix[0].size() != other[0].size()){
-        cout << "Sizes not match!" << endl;
-        return *this;
-    }
+    if(matrix.size() != other.size() || matrix[0].size() != other[0].size())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     unsigned sz1 = matrix[0].size(), sz2 = matrix.size();
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
@@ -254,10 +252,9 @@ PTMatrix PTMatrix::operator>(const PTMatrix& other) const {
 
 PTMatrix PTMatrix::operator<(const PTMatrix& other) const {
     //check sizes
-    if(matrix.size() != other.size() || matrix[0].size() != other[0].size()){
-        cout << "Sizes not match!" << endl;
-        return *this;
-    }
+    if(matrix.size() != other.size() || matrix[0].size() != other[0].size())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     unsigned sz1 = matrix[0].size(), sz2 = matrix.size();
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
@@ -268,10 +265,9 @@ PTMatrix PTMatrix::operator<(const PTMatrix& other) const {
 
 PTMatrix PTMatrix::operator>=(const PTMatrix& other) const {
     //check sizes
-    if(matrix.size() != other.size() || matrix[0].size() != other[0].size()){
-        cout << "Sizes not match!" << endl;
-        return *this;
-    }
+    if(matrix.size() != other.size() || matrix[0].size() != other[0].size())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     unsigned sz1 = matrix[0].size(), sz2 = matrix.size();
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
@@ -282,10 +278,9 @@ PTMatrix PTMatrix::operator>=(const PTMatrix& other) const {
 
 PTMatrix PTMatrix::operator<=(const PTMatrix& other) const {
     //check sizes
-    if(matrix.size() != other.size() || matrix[0].size() != other[0].size()){
-        cout << "Sizes not match!" << endl;
-        return *this;
-    }
+    if(matrix.size() != other.size() || matrix[0].size() != other[0].size())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     unsigned sz1 = matrix[0].size(), sz2 = matrix.size();
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
@@ -317,10 +312,9 @@ PTMatrix PTMatrix::operator%=(unsigned int p) { return (*this) = (*this)%p; }
 
 PTMatrix PTMatrix::mulWithMod(const PTMatrix& other, long p) const {
     //check sizes
-    if(getColumns() != other.getRows()){
-        cout << "Matrices size are not compatible. returns the first matrix" << endl;
-        return *this;
-    }
+    if(getColumns() != other.getRows())
+        throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
+    
     vector<vector<long> > res(getRows(), vector<long>(other.getColumns(),0));
     for(unsigned int i=0; i < res.size(); i++)
         for(unsigned int j=0; j < res[i].size(); j++)
@@ -353,10 +347,8 @@ PTMatrix EncryptedMatrix::decrypt(const FHESecKey& secretKey) const {
 EncryptedMatrix EncryptedMatrix::operator*(const EncryptedMatrix& other) const
 {
     //check sizes
-    if(!matrixSize.canMultiply(other.matrixSize)){
-        cout << "ERROR! The matrices must be with suitable sizes!" << endl;
-        return *this;  //return this
-    }
+    if(!matrixSize.canMultiply(other.matrixSize))
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
     
     Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
     EncryptedArray ea(vec.getContext());
@@ -394,10 +386,9 @@ EncryptedMatrix EncryptedMatrix::operator*=(const EncryptedMatrix& other){ retur
 
 //matrices addition
 EncryptedMatrix EncryptedMatrix::operator+(const EncryptedMatrix& other) const{
-    if(!matrixSize.canAdd(other.getMatrixSize())){
-        cout << "ERROR! Both matrices must have the same sizes" << endl;
-        return *this;  //return copy of this
-    }
+    if(!matrixSize.canAdd(other.getMatrixSize()))
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
+        
     vector<Ctxt> ret = matrix;
     for(unsigned int i=0, len = matrix.size(); i < len; i++)
         ret[i] += other.matrix[i];
@@ -407,10 +398,9 @@ EncryptedMatrix EncryptedMatrix::operator+(const EncryptedMatrix& other) const{
 EncryptedMatrix EncryptedMatrix::operator+=(const EncryptedMatrix& other){ return ((*this) = (*this)+other); }
 
 EncryptedMatrix EncryptedMatrix::operator-(const EncryptedMatrix& other) const{
-    if(!matrixSize.canAdd(other.matrixSize)){
-        cout << "ERROR! Both matrices must have the same sizes" << endl;
-        return *this;  //return copy of this
-    }
+    if(!matrixSize.canAdd(other.matrixSize))
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
+        
     vector<Ctxt> ret = matrix;
     for(unsigned int i=0, len = matrix.size(); i < len; i++)
         ret[i] -= other.matrix[i];
@@ -429,75 +419,57 @@ EncryptedMatrix EncryptedMatrix::operator-(const EncryptedMatrix& other) const{
 EncryptedMatrix EncryptedMatrix::operator>(const EncryptedMatrix& other) const
 //A[i] > B[i] ==> A[i] == 1 && B[i] == 0 ==> A[i] & !B[i] ===> A*(B+1)
 {
-    //TODO: check if p==2
-    cout << "WORKING ONLY FOR BINARY FIELD!!!!!" << endl;
-    //check sizes
-    if(!matrixSize.canAdd(other.matrixSize)){
-        cout << "ERROR! Both matrices must have the same sizes" << endl;
-        return *this;  //return copy of this
-    }
+    if(!matrixSize.canAdd(other.matrixSize)) //check sizes
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
     
     Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
+    if(vec.getPtxtSpace()!= 2) //check that the computations is on binary field
+        throw NotBinaryField();
+
     EncryptedArray ea(vec.getContext());
-    /*unsigned int nslots = ea.size();
-    
-    //creating the NOT vector
-    vector<long> not_vec(nslots, 1);    //vectors of 1, uses for NOT
-    Ctxt not_ctxt(vec.getPubKey());
-    ea.encrypt(not_ctxt, vec.getPubKey(), not_vec);*/
-    
     Ctxt not_ctxt = getNotVector(ea, vec.getPubKey());
-    
     vector<Ctxt> res = other.matrix;
     
     for(unsigned int i=0, sz = res.size(); i < sz; i++){
         res[i] += not_ctxt;
         res[i] *= matrix[i];
     }
-    
     return EncryptedMatrix(res, matrixSize);
 }
 
 EncryptedMatrix EncryptedMatrix::operator<(const EncryptedMatrix& other) const
 //A[i] < B[i] ==> A[i] == 0 && B[i] == 1 ==> !A[i] & B[i] ===> (A+1)*B
 {
-    cout << "WORKING ONLY FOR BINARY FIELD!!!!!" << endl;
-    //check sizes
-    if(!matrixSize.canAdd(other.matrixSize)){
-        cout << "ERROR! Both matrices must have the same sizes" << endl;
-        return *this;  //return copy of this
-    }
+    if(!matrixSize.canAdd(other.matrixSize)) //check sizes
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
     
     Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
+    if(vec.getPtxtSpace()!= 2) //check that the computations is on binary field
+        throw NotBinaryField();
+
     EncryptedArray ea(vec.getContext());
-    
     Ctxt not_ctxt = getNotVector(ea, vec.getPubKey());
-    
     vector<Ctxt> res = matrix;
     
     for(unsigned int i=0, sz = res.size(); i < sz; i++){
         res[i] += not_ctxt;
         res[i] *= other[i];
     }
-    
     return EncryptedMatrix(res, matrixSize);
 }
 
 EncryptedMatrix EncryptedMatrix::operator>=(const EncryptedMatrix& other) const
 //A[i] >= B[i] ==> !(A[i] < B[i]) => !(!A[i] & B[i]) ===> ((A+1)*B)+1
 {
-    cout << "WORKING ONLY FOR BINARY FIELD!!!!!" << endl;
-    //check sizes
-    if(!matrixSize.canAdd(other.matrixSize)){
-        cout << "ERROR! Both matrices must have the same sizes" << endl;
-        return *this;  //return copy of this
-    }
+    if(!matrixSize.canAdd(other.matrixSize)) //check sizes
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
     
     Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
+    if(vec.getPtxtSpace()!= 2) //check that the computations is on binary field
+        throw NotBinaryField();
+
     EncryptedArray ea(vec.getContext());
-    
     Ctxt not_ctxt = getNotVector(ea, vec.getPubKey());
-    
     vector<Ctxt> res = matrix;
     
     for(unsigned int i=0, sz = res.size(); i < sz; i++){
@@ -505,7 +477,6 @@ EncryptedMatrix EncryptedMatrix::operator>=(const EncryptedMatrix& other) const
         res[i] *= other[i];
         res[i] += not_ctxt;
     }
-    
     return EncryptedMatrix(res, matrixSize);
 }
 
@@ -513,18 +484,15 @@ EncryptedMatrix EncryptedMatrix::operator>=(const EncryptedMatrix& other) const
 EncryptedMatrix EncryptedMatrix::operator<=(const EncryptedMatrix& other) const
 //A[i] <= B[i] ==> !(A[i] > B[i]) => !(A[i] & !B[i]) ===> (A*(B+1))+1
 {
-    cout << "WORKING ONLY FOR BINARY FIELD!!!!!" << endl;
-    //check sizes
-    if(!matrixSize.canAdd(other.matrixSize)){
-        cout << "ERROR! Both matrices must have the same sizes" << endl;
-        return *this;  //return copy of this
-    }
+    if(!matrixSize.canAdd(other.matrixSize)) //check sizes
+        throw MatricesSizesNotMatch(matrixSize, other.matrixSize);
     
     Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
+    if(vec.getPtxtSpace()!= 2) //check that the computations is on binary field
+        throw NotBinaryField();
+    
     EncryptedArray ea(vec.getContext());
-    
     Ctxt not_ctxt = getNotVector(ea, vec.getPubKey());
-    
     vector<Ctxt> res = other.matrix;
     
     for(unsigned int i=0, sz = res.size(); i < sz; i++){
@@ -532,7 +500,6 @@ EncryptedMatrix EncryptedMatrix::operator<=(const EncryptedMatrix& other) const
         res[i] *= matrix[i];
         res[i] += not_ctxt;
     }
-    
     return EncryptedMatrix(res, matrixSize);
 }
 

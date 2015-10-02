@@ -142,3 +142,24 @@ public:
     EncryptedMatrix debugMul(const EncryptedMatrix& other) const;
 };
 
+//EXCEPTIONS
+class MatricesSizesNotMatch:public runtime_error{
+public:
+    MatricesSizesNotMatch(const MatSize& m1, const MatSize& m2) : runtime_error("Matrices sizes are not match!"), sz1(m1), sz2(m2) {}
+    const char* what(){
+        cnvt.str( "" );
+        cnvt << runtime_error::what() << ": First matrix size: " << sz1.rows << "x" << sz1.columns << ", second matrix size: " << sz2.rows << "x" << sz2.columns;
+        return cnvt.str().c_str();
+    }
+    ~MatricesSizesNotMatch() throw() {};
+private:
+    MatSize sz1, sz2;
+    static ostringstream cnvt;
+};
+
+class NotBinaryField:public runtime_error{
+public:
+    NotBinaryField(): runtime_error("For this operation, the plain text space MUST be binary!") {};
+    const char* what(){ return runtime_error::what(); }
+    ~NotBinaryField() throw() {};
+};
