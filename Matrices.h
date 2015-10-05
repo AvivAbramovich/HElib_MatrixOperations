@@ -46,6 +46,7 @@ public:
     //C'tors
     PTMatrix(vector<vector<long> > _matrix, bool diagonal=true);
     PTMatrix(MatSize sizes, unsigned int numbersLimit = 10);   //random matrix
+    PTMatrix(ifstream& file); //read the matrix from a file
     
     //Encrypting
     EncryptedMatrix encrypt(const EncryptedArray& ea, const FHEPubKey& publicKey) const;
@@ -59,6 +60,7 @@ public:
     vector<vector<long> > getMatrix() const;    //return the matrix as rows order matrix
     
     void print(string label="") const;   //prints the matrix with some comment/label
+    bool save(ofstream& file) const;
     
     //operators:
     //NOTE: the idea of Homomorphic Encryption is to do these operations on encrypted data, so using these operation is useless. It uses for statistics, for checking how slower are some operations on the encrypted data compared to the operations in the plain text data

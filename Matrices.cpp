@@ -92,6 +92,63 @@ params:
             matrix[i][j] = rand() % numbersLimit;
 }
 
+PTMatrix::PTMatrix(ifstream& file)
+/*read a matrix from a file
+ the file format should be
+ num_of_rows num_of_columns
+ the matrix
+ for example:
+ 2 3
+ 5 3 7
+ 1 4 6
+ */
+{
+    string line, temp;
+    int rows, cols;
+    if (file.is_open())
+    {
+        getline(file, line); //get number of rows
+        temp = line.substr(0, line.find(' '));
+        rows = stoi(temp);
+        temp = line.substr(line.find(' ')+1);
+        cols = stoi(temp);
+        
+        matrix = vector<vector<long> >(cols, vector<long>(rows,0));
+        for(int i=0; i < rows; i++)
+        {
+            getline(file,line);
+            for(int j=0; j < cols; j++){
+                temp = line.substr(0, line.find(' '));
+                matrix[myModulu(j-i,matrix.size())][i] = stoi(temp);
+                line = line.substr(line.find(' ')+1);
+            }
+        }
+        file.close();
+    }
+    else
+        cout << "Unable to open file";
+}
+
+bool PTMatrix::save(ofstream& file) const{
+    if (file.is_open())
+    {
+        unsigned int rows = getRows(), cols = getColumns();
+        file << rows << " " << cols << "\n";
+        for(unsigned int i=0; i < rows; i++){
+            for(unsigned int j=0; j < cols; j++)
+                file << (*this)(i,j) << " ";
+            file << "\n";
+        }
+        file.close();
+    }
+    else{
+        cout << "Unable to open file";
+        return false;
+    }
+    
+    return true;
+}
+
 vector<vector<long> > PTMatrix::getMatrix() const{
     unsigned int rows = getRows(), cols = getColumns();
     vector<vector<long> > ret(rows, vector<long>(cols,0));
