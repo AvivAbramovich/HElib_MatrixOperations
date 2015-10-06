@@ -19,6 +19,7 @@ public:
     //C'tors
     PTMatrixGrid(const PTMatrix& matrix, const MatSize blockSize); //each PTMatrix save the MatrixRepresentation of the given PTMatrix
     PTMatrixGrid(const vector<vector<PTMatrix> >& matrixGrid);
+    PTMatrixGrid(ifstream& file);   //read from a file
     
     //Encryption
     EncryptedMatrixGrid encrypt(const EncryptedArray& ea, const FHEPubKey& publicKey) const;
@@ -28,10 +29,12 @@ public:
     
     //Re-unite the grid to a one "big" matrix
     PTMatrix reunion() const;
+    bool save(ofstream& file) const;
     
     unsigned int getRows() const;       //returns number of rows in the big matrix
     unsigned int getColumns() const;    //returns number of columns in the big matrix
-    vector<PTMatrix> operator[](unsigned int i) const;  //returns the i-th vector of the grid. Not really useful, uses for inner operations
+    const vector<PTMatrix>& operator[](unsigned int i) const;  //returns the i-th vector of the grid. Not really useful, uses for inner operations
+    vector<PTMatrix>& operator[](unsigned int i);
     unsigned int size() const;  //grid.size()
 
     MatSize getGridSize() const;    //returns the size of the grid as a Matsize object

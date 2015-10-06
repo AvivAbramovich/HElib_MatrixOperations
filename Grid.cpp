@@ -52,7 +52,7 @@ Strassen algorithm:
 }
 
 /* ------------------------------- PTMatrixGrid --------------------------------------*/
-PTMatrixGrid::PTMatrixGrid(const PTMatrix& matrix, const MatSize blockSize){
+vector<vector<PTMatrix> > init(const PTMatrix& matrix, const MatSize blockSize){
     unsigned int numRows = 0, numCols = 0;
     MatSize origSize = matrix.getMatrixSize();
     numRows = origSize.rows/blockSize.rows;   numCols = origSize.columns/blockSize.columns;
@@ -64,13 +64,64 @@ PTMatrixGrid::PTMatrixGrid(const PTMatrix& matrix, const MatSize blockSize){
         cout << "The number of columns in the wanted size (" << blockSize.columns <<") is not divide the matrix size (" << origSize.columns <<")"<<endl;
         numCols++;  //for the "שארית"
     }
-    grid = vector<vector<PTMatrix> >(numRows);
+    vector<vector<PTMatrix> > grid = vector<vector<PTMatrix> >(numRows);
     for(unsigned int i=0; i< numRows; i++)
         for(unsigned int j=0; j< numCols; j++)
             grid[i].push_back(matrix.getSubMatrix(i*blockSize.rows, j*blockSize.columns, blockSize));
+    return grid;
 }
 
+PTMatrixGrid::PTMatrixGrid(const PTMatrix& matrix, const MatSize blockSize): grid(init(matrix, blockSize)) {}
+
 PTMatrixGrid::PTMatrixGrid(const vector<vector<PTMatrix> >& matrixGrid) : grid(matrixGrid) {}
+
+PTMatrixGrid::PTMatrixGrid(ifstream& file)
+/*read a matrix from a file
+ the file format should be
+ num_of_rows num_of_columns block_num_rows block_num_columns
+ the matrix
+ for example:
+ 3 4 3 2
+ 1 2 3 4
+ 5 6 7 8
+ 9 8 7 6
+ is a 3 by 4 matrix, and the grid is the 2 3 by 2 matrices:
+ 1 2
+ 5 6
+ 9 8
+ and
+ 3 4
+ 7 8
+ 7 6
+ */
+{
+    if(file.is_open()){
+        string line;
+        int rows, cols, block_rows, block_cols;
+        getline(file, line);
+        rows = stoi(line.substr(0, line.find(' ')));
+        line = line.substr(line.find(' ')+1);
+        cols = stoi(line.substr(0, line.find(' ')));
+        line = line.substr(line.find(' ')+1);
+        block_rows = stoi(line.substr(0, line.find(' ')));
+        line = line.substr(line.find(' ')+1);
+        block_cols = stoi(line.substr(0, line.find(' ')));
+        MatSize block_size(block_rows, block_cols);
+        
+        vector<vector<long> > bigMatrix(rows, vector<long>(cols));
+        for(int i=0; i < rows; i++){
+            getline(file, line);
+            for(int j=0; j < cols; j++){
+                bigMatrix[i][j] = stoi(line.substr(0, line.find(' ')));
+                line = line.substr(line.find(' ')+1);
+            }
+        }
+        PTMatrix mat(bigMatrix, false); //conert to PTMatrix, when the matrix transformed to diagonal order
+        grid = init(mat, block_size);
+    }
+    else
+        cout << "Unable to open file";
+}
 
 EncryptedMatrixGrid PTMatrixGrid::encrypt(const EncryptedArray& ea, const FHEPubKey& publicKey) const{
     vector<vector<EncryptedMatrix> > mat(grid.size());
@@ -96,13 +147,38 @@ PTMatrix PTMatrixGrid::reunion() const {
     return PTMatrix(mat, false);
 }
 
+bool PTMatrixGrid::save(ofstream& file) const {
+    PTMatrixGrid copy = (*this);
+    PTMatrix mat = copy.reunion();
+    if (file.is_open())
+    {
+        MatSize matSZ = getMatrixSize(), gridSZ = getGridSize();
+        unsigned int rows = matSZ.rows, cols = matSZ.columns, block_rows = gridSZ.rows, block_cols = gridSZ.columns;
+        file << rows << " " << cols << " " << block_rows << " " << block_cols << "\n";
+        for(unsigned int i=0; i < rows; i++){
+            for(unsigned int j=0; j < cols; j++)
+                file << mat(i,j) << " ";
+            file << "\n";
+        }
+        file.close();
+    }
+    else{
+        cout << "Unable to open file";
+        return false;
+    }
+    
+    return true;
+}
+
 //in getRows and getColumns, multiply the number of blocks in rows/columns with the size of the first block,
 //except the last block, that calculated seperatly because it may be smaller than the other
 unsigned int PTMatrixGrid::getRows() const{ return grid[0][0].getRows()*(grid.size()-1)+grid[grid.size()-1][0].getRows(); }
 
 unsigned int PTMatrixGrid::getColumns() const{ return grid[0][0].getColumns()*(grid[0].size()-1)+grid[0][grid.size()-1].getColumns(); }
 
-vector<PTMatrix> PTMatrixGrid::operator[](unsigned int i) const {  return grid[i]; }
+const vector<PTMatrix>& PTMatrixGrid::operator[](unsigned int i) const {  return grid[i]; }
+
+vector<PTMatrix>& PTMatrixGrid::operator[](unsigned int i) {  return grid[i]; }
 
 MatSize PTMatrixGrid::getGridSize() const { return MatSize(grid.size(), grid[0].size()); }
 
