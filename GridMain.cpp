@@ -1,4 +1,4 @@
-#include "Matrices.h"
+#include "Grid.h"
 #include <sys/time.h>
 
 
@@ -45,7 +45,7 @@ int main(){
     long security = 128;*/
     long m, r, p, L, c, w, s, d, security, enc1, enc2, dec, encMul, ptMul, recommended;
     char tempChar;
-    bool toEncMult = false, toPrint = false, debugMul = false;
+    bool toEncMult, toPrint;
     
     //Scan parameters
     
@@ -152,29 +152,25 @@ int main(){
     cout << "Computations will be modulo " << p << endl;
     cout << "m: " << m << endl;
     
-    unsigned int sz1, sz2, sz3;
+    unsigned int sz1;
     while(true){
-        cout << "Enter number of rows in the first matrix: ";
+        cout << "Enter size of matrices: ";
         cin >> sz1;
-        if(sz1 > 1 && sz1 <= nslots)
+        if(sz1 > 1)
             break;
-        cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
+        cout << "Error! the value must be a positive number!" << endl;
     }
-    while(true){
-        cout << "Enter number of rows in the first matrix: ";
-        cin >> sz2;
-        if(sz1 > 2 && sz2 <= nslots)
-            break;
-        cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
-    }
-    while(true){
-        cout << "Enter number of rows in the first matrix: ";
-        cin >> sz3;
-        if(sz1 > 3 && sz3 <= nslots)
-            break;
-        cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
-    }
-    PTMatrix PTmat1(MatSize(sz1, sz2),p), PTmat2(MatSize(sz2, sz3), p);  //random matrix in size origSize1
+    
+    MatSize atom(nslots,nslots), sqr(sz1,sz1);
+    PTMatrix mat1(sqr, p), mat2(sqr, p);
+    PTMatrixGrid grid1(mat1, atom), grid2(mat2, atom);
+    
+    //save the grids
+    //save to files
+    ofstream outGrid1("grid1.txt"), outGrid2("grid2.txt");
+    grid1.save(outGrid1);
+    grid2.save(outGrid2);
+    outGrid1.close(); outGrid2.close();
     
     while(true){
         cout << "To multiply the encrypted matrices? Not affecting the formula, just for statistic" << endl;
@@ -186,19 +182,6 @@ int main(){
         }
         if(tempChar == 'N' || tempChar == 'n'){
             toEncMult = false;
-            break;
-        }
-        cout << "Error! invalid input!" << endl;
-    }
-    while(toEncMult){
-        cout << "Debug the multiplication steps?\nY for yesm N for no :";
-        cin >> tempChar;
-        if(tempChar == 'Y' || tempChar == 'y'){
-            debugMul = true;
-            break;
-        }
-        if(tempChar == 'N' || tempChar == 'n'){
-            debugMul = false;
             break;
         }
         cout << "Error! invalid input!" << endl;
@@ -218,43 +201,50 @@ int main(){
         cout << "Error! invalid input!" << endl;
     }
     if(toPrint){
-        PTmat1.print();
-        PTmat2.print();
+        mat1.print();
+        mat2.print();
     }
     
     //encryptions
-    cout << "Encrypting the first matrices..." << endl;
+    cout << "Encrypting the first grid..." << endl;
     resetTimers();
-    EncryptedMatrix encMat1 = PTmat1.encrypt(ea, publicKey);
-    enc1 = stopTimers("to encrypt the first matrix");
-    cout << "Encrypting the second matrices..." << endl;
+    EncryptedMatrixGrid encGrid1 = grid1.encrypt(ea, publicKey);
+    enc1 = stopTimers("to encrypt the first grid");
+    cout << "Encrypting the second grid..." << endl;
     resetTimers();
-    EncryptedMatrix encMat2 = PTmat2.encrypt(ea, publicKey);
-    enc2 = stopTimers("to encrypt the second matrix");
+    EncryptedMatrixGrid encGrid2 = grid2.encrypt(ea, publicKey);
+    enc2 = stopTimers("to encrypt the second grid");
     
     //multiplication
     if(toEncMult){
         cout << "Multiplying the matrices..." << endl;
         resetTimers();
-        if(debugMul)
-            encMat1 = encMat1.debugMul(encMat2); //same as encMat1 *= encMat2 but print progress update
-        else
-            encMat1 *= encMat2;
+        encGrid1 *= encGrid2;
+        //encMat1 = encMat1.debugMul(encMat2); //same as encMat1 *= encMat2 but print progress update
         encMul = stopTimers("to multiply the matrices");
     }
     
     cout << "Decrypting the result..." << endl;
     resetTimers();
-    PTMatrix res = encMat1.decrypt(ea, secretKey);
+    PTMatrixGrid res = encGrid1.decrypt(ea, secretKey);
     dec = stopTimers("to decrypt the result");
+    PTMatrix reunionGrid = res.reunion();
     if(toPrint)
-        res.print("Solution: ");
+        reunionGrid.print("Solution: ");
     
     resetTimers();
-    PTMatrix PTres = PTmat1.mulWithMod(PTmat2,p); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
+    PTMatrix PTres = mat1.mulWithMod(mat2,p); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
     ptMul = stopTimers("to multiply the regular matrices");
     
-    //PTres.print("pt result: ");
+    if(toPrint)
+        PTres.print("pt result: ");
+    
+    //save to results
+    ofstream outEncRes("encRes.txt"), outPTres("ptRes.txt");
+    res.save(outEncRes);
+    PTres.save(outPTres);
+    outEncRes.close();
+    outPTres.close();
     
     cout << "\n\n----------------------------------------Summary------------------------------ " << endl;
     cout << "p: " << p << ", r: " << r << ", L: " << L << ", c: " << c << ", w: " << w << ", d: " << d << ", s: " << s << ", security: " << security << endl;
@@ -265,11 +255,8 @@ int main(){
     cout << "It took " << ptMul << " clock ticks to multiply the regular matrices" << endl;
     if(toEncMult){
         cout << "It took " << encMul << " clock ticks to multiply the encrypted matrices" << endl;
-        cout << "is correct? " << (res==PTres) << endl;
+        cout << "is correct? " << (reunionGrid==PTres) << endl;
     }
-    long N = nslots*(enc1+enc2+dec)/ptMul;
-    
-    cout << "N should be greater than " << N << endl;
 
     return 0;
 }

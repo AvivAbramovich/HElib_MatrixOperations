@@ -625,13 +625,12 @@ EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other) const{
     vector<Ctxt> res;
     int n = getRows(), m = getColumns(), k = other.getColumns(); //sizes: A(this):n*m, B(other):m*k
     for(int i=0; i < k; i++){
-        cout << "Multiplication: " << i+1 << " of " << k << endl;
         Ctxt C(vec.getPubKey());
         for(int j=0; j< m; j++){
-            cout << "j: " << j+1 << " of " << m << endl;
             //work by my formula: C_i = Sig j= 0 to n-1 [ A_i * (B_i-j%n <<< j) ]
             Ctxt B = other[myModulu(i-j,k)]; //B_i-j%n
-            cout << "rotate" << endl;
+            cout.flush();
+            cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - rotate                  \r";
             if(squares)
                 ea.rotate(B, n-j); //rotate j left, B_i-j%n <<< j (or -j right)
             else{
@@ -645,12 +644,15 @@ EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other) const{
                     length+=m;
                 }
             }
-            cout << "mul" << endl;
+            cout.flush();
+            cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - mul                  \r";
             B *= matrix[j];  //* A_j
-            cout << "add" << endl;
+            cout.flush();
+            cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - add                  \r";
             C += B;
         }
         res.push_back(C);
     }
+    cout.flush();
     return EncryptedMatrix(res, matrixSize*other.matrixSize);
 }
