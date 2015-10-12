@@ -38,8 +38,17 @@ Ctxt getNotVector(const EncryptedArray& ea, const FHEPubKey& publicKey){
     ea.encrypt(not_ctxt, publicKey, not_vec);
     return not_ctxt;
 }
+
+vector<bool> intToBinary(unsigned int num){
+    vector<bool> res;
+    for(; num; num/=2)
+        res.push_back(num%2);
+    return res;
+}
 /* --------------------- MatSize (matrices size operations) class --------------------*/
 MatSize::MatSize(unsigned int first, unsigned int second): rows(first), columns(second) {}
+
+//MatSize::MatSize(unsigned int sz): rows(sz), columns(sz) {}
 
 MatSize MatSize::operator*(const MatSize& other) const{
     if(!canMultiply(other)){
@@ -263,17 +272,29 @@ PTMatrix PTMatrix::operator*(const PTMatrix& other) const{
 
 PTMatrix PTMatrix::operator*=(const PTMatrix& other){ return (*this) = (*this)*other; }
 
+//mult by constant
+PTMatrix PTMatrix::operator*(unsigned int num) const {
+    PTMatrix copy = *this;
+    for(unsigned int i=0, sz1 = matrix.size(); i < sz1; i++)
+        for(unsigned int j=0, sz2 = matrix[i].size(); j < sz2; j++)
+            copy[i][j] *= num;
+    return copy;
+}
+
+PTMatrix PTMatrix::operator*=(unsigned int num) { return ((*this) = (*this)*num); }
+
+
 PTMatrix PTMatrix::operator+(const PTMatrix& other) const{
     //check sizes
     if(matrix.size() != other.matrix.size() || matrix[0].size() != other.matrix[0].size())
         throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
     
     unsigned int rows = getRows(), cols = getColumns();
-    vector<vector<long> > res(rows, vector<long>(cols,0));
+    vector<vector<long> > res = matrix;
     for(unsigned int i=0; i < rows; i++)
         for(unsigned int j=0; j < cols; j++)
-            res[i][j] = matrix[i][j]+other[i][j];
-    return PTMatrix(res, false);
+            res[j][i] = matrix[j][i]+other[j][i];
+    return PTMatrix(res, true);
 }
 
 PTMatrix PTMatrix::operator+=(const PTMatrix& other){ return (*this) = (*this)+other; }
@@ -441,6 +462,35 @@ EncryptedMatrix EncryptedMatrix::operator*(const EncryptedMatrix& other) const
 
 EncryptedMatrix EncryptedMatrix::operator*=(const EncryptedMatrix& other){ return ((*this) = (*this)*other); }
 
+//mult by constant
+EncryptedMatrix EncryptedMatrix::operator*(unsigned int num) const {
+    if(num == 2)
+        return (*this)+(*this);
+    if(num == 1)
+        return *this;
+    if(num == 0) //return 0's matrix in the same size
+        return EncryptedMatrix(vector<Ctxt>(matrix.size(), Ctxt(matrix[0].getPubKey())), getMatrixSize());
+    
+    EncryptedMatrix copy = *this, res = *this;
+    bool isEmpty = true;
+    vector<bool> binary = intToBinary(num);
+    
+    for(unsigned int i=0, sz = binary.size(); i < sz; i++){
+        if(binary[i]){
+            if(isEmpty)
+                res = copy;
+            else
+                res += copy;
+            isEmpty = false;
+        }
+        copy *= 2;
+    }
+    
+    return res;
+}
+
+EncryptedMatrix EncryptedMatrix::operator*=(unsigned int num) { return ((*this) = (*this)*num); }
+
 //matrices addition
 EncryptedMatrix EncryptedMatrix::operator+(const EncryptedMatrix& other) const{
     if(!matrixSize.canAdd(other.getMatrixSize()))
@@ -448,7 +498,7 @@ EncryptedMatrix EncryptedMatrix::operator+(const EncryptedMatrix& other) const{
         
     vector<Ctxt> ret = matrix;
     for(unsigned int i=0, len = matrix.size(); i < len; i++)
-        ret[i] += other.matrix[i];
+        ret[i] += other[i];
     return EncryptedMatrix(ret, matrixSize);
 }
 
@@ -610,25 +660,40 @@ unsigned int EncryptedMatrix::getColumns() const { return getMatrixSize().column
 
 MatSize EncryptedMatrix::getMatrixSize() const { return matrixSize; }
 
-EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other) const{
+
+
+
+
+
+
+
+//Debug operations
+
+EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other, bool logFile) const{
     //check sizes
     if(!matrixSize.canMultiply(other.matrixSize)){
         cout << "ERROR! The matrices must be with suitable sizes!" << endl;
         return *this;  //return this
     }
     
-    Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
+    ofstream* log = NULL;
+    if(logFile)
+        log = new ofstream("logFile.txt");
+    
+    Ctxt vec(matrix[0]); //save it for faster vec.getPubKey() in the loop
     EncryptedArray ea(vec.getContext());
     bool squares = getMatrixSize().isSquare() && other.getMatrixSize().isSquare() && getRows()==ea.size();  //Use the square matrices formula (much faster)
     cout << "Square matrices? " << squares << endl;
-    //cout << "Square matrices formula? " << squares << endl;
-    vector<Ctxt> res;
+    if(logFile)
+        (*log) << "Square matrices? " << squares << endl;
     int n = getRows(), m = getColumns(), k = other.getColumns(); //sizes: A(this):n*m, B(other):m*k
+    vector<Ctxt> res(m, Ctxt(vec.getPubKey()));
     for(int i=0; i < k; i++){
-        Ctxt C(vec.getPubKey());
         for(int j=0; j< m; j++){
+            if(logFile)
+                (*log) << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << endl;
             //work by my formula: C_i = Sig j= 0 to n-1 [ A_i * (B_i-j%n <<< j) ]
-            Ctxt B = other[myModulu(i-j,k)]; //B_i-j%n
+            Ctxt B(other[myModulu(i-j,k)]); //B_i-j%n
             cout.flush();
             cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - rotate                  \r";
             if(squares)
@@ -638,7 +703,7 @@ EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other) const{
                 ea.shift(B, -j);  //shift j left
                 int length = m-j;
                 for(int itter=1;length < n; itter++){
-                    Ctxt toChain = other[myModulu(i-j+(itter*m),k)];
+                    Ctxt toChain(other[myModulu(i-j+(itter*m),k)]);
                     ea.shift(toChain, length);  //shift length to right
                     B += toChain;
                     length+=m;
@@ -649,10 +714,45 @@ EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other) const{
             B *= matrix[j];  //* A_j
             cout.flush();
             cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - add                  \r";
-            C += B;
+            res[i] += B;
         }
-        res.push_back(C);
+        if(logFile)
+            (*log) << "Done with i=" << i+1 << endl;
     }
     cout.flush();
+    if(logFile){
+        (*log) << "DONE!!!!";
+        (*log).close();
+        delete log;
+    }
     return EncryptedMatrix(res, matrixSize*other.matrixSize);
+}
+
+EncryptedMatrix EncryptedMatrix::debugAdd(const EncryptedMatrix& other, bool logFile) const{
+    //check sizes
+    if(matrixSize != other.matrixSize){
+        cout << "ERROR! The matrices must be with suitable sizes!" << endl;
+        return *this;  //return this
+    }
+    
+    ofstream* log = NULL;
+    if(logFile)
+        log = new ofstream("logFile.txt");
+    
+    vector<Ctxt> res = matrix;
+    for(unsigned int i=0, sz = matrix.size(); i < sz; i++){
+        if(logFile)
+            (*log) << "i: " << i+1 << endl;
+        cout << "i: " << i+1 << "        \r";
+        res[i] += other[i];
+        cout.flush();
+        if(logFile)
+            (*log) << "Done with i=" << i+1 << endl;
+    }
+    if(logFile){
+        (*log) << "DONE!!!!";
+        (*log).close();
+        delete log;
+    }
+    return EncryptedMatrix(res, matrixSize);
 }

@@ -34,15 +34,9 @@ int main(){
     
     cout << "This experiment check for different values of parameters, how much time it takes to encrypt and decrypt a \"full\" matrix (nslots*nslots), and multply 2 encrypted matrices\nAlso check for what size of matrices, the multiplication in the server on the encrypted data is faster than for the user than do all the work on his machine. Using this formula: N > n(P)*(2*Enc(P)+Dec(P)) when:\nP is the parameters\nn(P) is the nslots value for these values\nEnc(P) and Dec(P) is the time it takes to encrypt and decrypt the matrics in size nslots*nslots\nNOTE: this formula don't take into account the time it takes to send and recieve the data to and from the server, and the time it took to the server to do the actual multiplication\n" << endl;
     
-    /*
-    long m=0, r=1; // Native plaintext space
-    int p = 65539; // Computations will be 'modulo p'
-    long L=16;          // Levels
-    long c=3;           // Columns in key switching matrix
-    long w=64;          // Hamming weight of secret key
-    long d=0;
-    long s = 0;  //minimum number of slots  [ default=0 ]
-    long security = 128;*/
+    
+    //----------------------------------------------first Test ---------------------------------------
+    
     long m, r, p, L, c, w, s, d, security, enc1, enc2, dec, encMul, ptMul, recommended;
     char tempChar;
     bool toEncMult = false, toPrint = false, debugMul = false, toSave = false;
@@ -161,14 +155,14 @@ int main(){
         cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
     }
     while(true){
-        cout << "Enter number of rows in the first matrix: ";
+        cout << "Enter number of columns in the first matrix (also num of rows in the second matrix): ";
         cin >> sz2;
         if(sz1 > 2 && sz2 <= nslots)
             break;
         cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
     }
     while(true){
-        cout << "Enter number of rows in the first matrix: ";
+        cout << "Enter number of rows in the second matrix: ";
         cin >> sz3;
         if(sz1 > 3 && sz3 <= nslots)
             break;
@@ -281,9 +275,7 @@ int main(){
         out_res.close(); out_ptRes.close();
     }
     
-    //PTres.print("pt result: ");
-    
-    cout << "\n\n----------------------------------------Summary------------------------------ " << endl;
+    cout << "\n\n------------------------------------First Test Summary------------------------------ " << endl;
     cout << "p: " << p << ", r: " << r << ", L: " << L << ", c: " << c << ", w: " << w << ", d: " << d << ", s: " << s << ", security: " << security << endl;
     cout << "nslots: " << nslots << "\nm: " << m << endl;
     cout << "It took " << enc1 << " clock ticks to encrypt the first matrix" << endl;
@@ -297,6 +289,39 @@ int main(){
     long N = nslots*(enc1+enc2+dec)/ptMul;
     
     cout << "N should be greater than " << N << endl;
-
+    
+    //----------------------------------------------Second Test ---------------------------------------
+    
+    if((res != PTres) || !toEncMult) //can't continue to the second test
+        return 0;
+    
+    unsigned int pn = (N/nslots)+1; //num of blocks needed
+    
+    cout << "The second part of the experiment. We will calculate 1 block of the result matrix if we would multiply 2 matrices in size " << N << "x" << N << "That made of " << nslots << "x" << nslots << " blocks. That means each matrix made of " << pn << "x" << pn << "\"small\" blocks.\nEach block in the result matrix is addition of " << pn << " blocks, that each block is result of 2 blocks multiplication. In this experiment, we take the result of 2 matrices multiplication (from the last test) and multiply it by " << pn << endl;
+    
+    cout << "multiplying the matrix in " << pn << "..." << endl;
+    resetTimers();
+    encMat1 *= pn;
+    stopTimers(" to multiply the matrix in constant");
+    
+    //decrypting the result
+    cout << "Decrypting the result" << endl;
+    resetTimers();
+    res = encMat1.decrypt(ea, secretKey);
+    stopTimers(" to decrypt the result");
+    
+    //check if right
+    PTres *= pn;
+    PTres %= p;
+    
+    if(toSave){
+        ofstream out_res2("mat_res2.txt"), out_ptRes2("mat_pt_res2.txt");
+        res.save(out_res2);
+        PTres.save(out_ptRes2);
+        out_res2.close(); out_ptRes2.close();
+    }
+    
+    cout << "is correct? " << (res==PTres) << endl;
+    
     return 0;
 }

@@ -31,9 +31,6 @@ bool isPrime(long num){
 }
 
 int main(){
-    
-    cout << "This experiment check for different values of parameters, how much time it takes to encrypt and decrypt a \"full\" matrix (nslots*nslots), and multply 2 encrypted matrices\nAlso check for what size of matrices, the multiplication in the server on the encrypted data is faster than for the user than do all the work on his machine. Using this formula: N > n(P)*(2*Enc(P)+Dec(P)) when:\nP is the parameters\nn(P) is the nslots value for these values\nEnc(P) and Dec(P) is the time it takes to encrypt and decrypt the matrics in size nslots*nslots\nNOTE: this formula don't take into account the time it takes to send and recieve the data to and from the server, and the time it took to the server to do the actual multiplication\n" << endl;
-    
     /*
     long m=0, r=1; // Native plaintext space
     int p = 65539; // Computations will be 'modulo p'
@@ -45,7 +42,7 @@ int main(){
     long security = 128;*/
     long m, r, p, L, c, w, s, d, security, enc1, enc2, dec, encMul, ptMul, recommended;
     char tempChar;
-    bool toEncMult = false, toPrint = false, debugMul = false, toSave = false;
+    bool toPrint = false, debugAdd = false, toSave = false;
     
     //Scan parameters
     
@@ -152,53 +149,33 @@ int main(){
     cout << "Computations will be modulo " << p << endl;
     cout << "m: " << m << endl;
     
-    unsigned int sz1, sz2, sz3;
+    unsigned int sz1, sz2;
     while(true){
-        cout << "Enter number of rows in the first matrix: ";
+        cout << "Enter number of rows in the matrices: ";
         cin >> sz1;
         if(sz1 > 1 && sz1 <= nslots)
             break;
         cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
     }
     while(true){
-        cout << "Enter number of rows in the first matrix: ";
+        cout << "Enter number of columns in the matrices: ";
         cin >> sz2;
         if(sz1 > 2 && sz2 <= nslots)
             break;
         cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
     }
-    while(true){
-        cout << "Enter number of rows in the first matrix: ";
-        cin >> sz3;
-        if(sz1 > 3 && sz3 <= nslots)
-            break;
-        cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
-    }
-    PTMatrix PTmat1(MatSize(sz1, sz2),p), PTmat2(MatSize(sz2, sz3), p);  //random matrix in size origSize1
+    MatSize sz(sz1, sz2);
+    PTMatrix PTmat1(sz,p), PTmat2(sz, p);  //random matrix in size origSize1
     
     while(true){
-        cout << "To multiply the encrypted matrices? Not affecting the formula, just for statistic" << endl;
-        cout << "Y for yes, N for no: ";
+        cout << "Debug the addition steps?\nY for yesm N for no :";
         cin >> tempChar;
         if(tempChar == 'Y' || tempChar == 'y'){
-            toEncMult = true;
+            debugAdd = true;
             break;
         }
         if(tempChar == 'N' || tempChar == 'n'){
-            toEncMult = false;
-            break;
-        }
-        cout << "Error! invalid input!" << endl;
-    }
-    while(toEncMult){
-        cout << "Debug the multiplication steps?\nY for yesm N for no :";
-        cin >> tempChar;
-        if(tempChar == 'Y' || tempChar == 'y'){
-            debugMul = true;
-            break;
-        }
-        if(tempChar == 'N' || tempChar == 'n'){
-            debugMul = false;
+            debugAdd = false;
             break;
         }
         cout << "Error! invalid input!" << endl;
@@ -252,16 +229,14 @@ int main(){
     EncryptedMatrix encMat2 = PTmat2.encrypt(ea, publicKey);
     enc2 = stopTimers("to encrypt the second matrix");
     
-    //multiplication
-    if(toEncMult){
-        cout << "Multiplying the matrices..." << endl;
-        resetTimers();
-        if(debugMul)
-            encMat1 = encMat1.debugMul(encMat2); //same as encMat1 *= encMat2 but print progress update
-        else
-            encMat1 *= encMat2;
-        encMul = stopTimers("to multiply the matrices");
-    }
+    //addition
+    cout << "Adding the matrices..." << endl;
+    resetTimers();
+    if(debugAdd)
+        encMat1 = encMat1.debugAdd(encMat2); //same as encMat1 += encMat2 but print progress update
+    else
+        encMat1 += encMat2;
+    encMul = stopTimers("to add the matrices");
     
     cout << "Decrypting the result..." << endl;
     resetTimers();
@@ -271,8 +246,8 @@ int main(){
         res.print("Solution: ");
     
     resetTimers();
-    PTMatrix PTres = PTmat1.mulWithMod(PTmat2,p); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
-    ptMul = stopTimers("to multiply the regular matrices");
+    PTMatrix PTres = (PTmat1 + PTmat2)%p;
+    ptMul = stopTimers("to add the regular matrices");
     
     if(toSave){
         ofstream out_res("mat_res.txt"), out_ptRes("mat_pt_res.txt");
@@ -289,14 +264,9 @@ int main(){
     cout << "It took " << enc1 << " clock ticks to encrypt the first matrix" << endl;
     cout << "It took " << enc2 << " clock ticks to encrypt the second matrix" << endl;
     cout << "It took " << dec << " clock ticks to decrypt the result" << endl;
-    cout << "It took " << ptMul << " clock ticks to multiply the regular matrices" << endl;
-    if(toEncMult){
-        cout << "It took " << encMul << " clock ticks to multiply the encrypted matrices" << endl;
-        cout << "is correct? " << (res==PTres) << endl;
-    }
-    long N = nslots*(enc1+enc2+dec)/ptMul;
-    
-    cout << "N should be greater than " << N << endl;
+    cout << "It took " << ptMul << " clock ticks to add the regular matrices" << endl;
+    cout << "It took " << encMul << " clock ticks to add the encrypted matrices" << endl;
+    cout << "is correct? " << (res==PTres) << endl;
 
     return 0;
 }

@@ -17,6 +17,7 @@ public:
     unsigned int columns;   //Num of Columns in the matrix
     
     MatSize(unsigned int first=0, unsigned int second=0);   //C'tor
+    //MatSize(unsigned int sz); //C'tor for square matrix
     MatSize operator*(const MatSize& other) const;          //The size of the matrix get by multiply the 2 matrices
     MatSize operator*=(const MatSize& other);
     MatSize transpose();
@@ -69,6 +70,10 @@ public:
     PTMatrix operator*(const PTMatrix& other) const;
     PTMatrix operator*=(const PTMatrix& other);
     
+    //Mul by constant
+    PTMatrix operator*(unsigned int num) const;
+    PTMatrix operator*=(unsigned int num);
+    
     //matrices addition
     PTMatrix operator+(const PTMatrix& other) const;
     PTMatrix operator+=(const PTMatrix& other);
@@ -115,6 +120,10 @@ public:
     EncryptedMatrix operator*(const EncryptedMatrix& other) const;
     EncryptedMatrix operator*=(const EncryptedMatrix& other);
     
+    //mult by constant
+    EncryptedMatrix operator*(unsigned int num) const;
+    EncryptedMatrix operator*=(unsigned int num);
+    
     //matrices addition
     EncryptedMatrix operator+(const EncryptedMatrix& other) const;
     EncryptedMatrix operator+=(const EncryptedMatrix& other);
@@ -140,8 +149,9 @@ public:
     unsigned int getColumns() const;                //returns the number of columns
     MatSize getMatrixSize() const;                  //returns the matrix size as MatSize object
     
-    //debug mul
-    EncryptedMatrix debugMul(const EncryptedMatrix& other) const;
+    //debug operators
+    EncryptedMatrix debugMul(const EncryptedMatrix& other, bool logFile = true) const;
+    EncryptedMatrix debugAdd(const EncryptedMatrix& other, bool logFile = true) const;
 };
 
 //EXCEPTIONS
