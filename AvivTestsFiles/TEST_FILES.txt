@@ -1,0 +1,11 @@
+Created by Aviv Abramovich, 2015
+
+This files are some tests to my addition classes.
+To run them, you need
+
+1. Make sure you installed HElib, using my modified makefile and files (As described in “INSTALL.txt”
+2. Transfer the file to the directory where HElib installed (the one include the makefile)
+3. In the terminal, navigate to that directory
+4. Compile the test file using the command:
+	make FILE_NAME_x
+for example, for the file “Matrices_Multiplication.cpp” the command would be “make Matrices_Multiplication_x” (no .cpp extension)

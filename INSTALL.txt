@@ -1,0 +1,11 @@
+Created by Aviv Abramovich 2015
+
+These Files are extension to Shai Halevi’s HElib, Fully homomorphic encryption library. These files adding classes for matrices, and include some operations on encrypted matrices like multiplication, addition, subtraction, comparing and more. It also includes “grids”, matrix of matrices, to allow you handle larger data, than HElib let you to handle, by “breaking” the matrix to smaller matrices.
+
+Installation:
+1. Download the original HElib from here: https://github.com/shaih/HElib
+2. If you haven’t yet, install both GMP and NTL, according to “INSTALL.txt” of HElib (Without compiling HElib)
+3. Add my files (Matrices.cpp, Matrices.h, Grid.cpp and Grid.h) to the HElib files, and replace the original “makefile” by my makefile
+3. In terminal, go to the directory where you place HElib and my files, and compile them using the command “make”
+
+Now you done compiling the library and ready to use it. In the “AvivTestFiles” folder you can find some sample programs, demonstrating using some operations of HElib, and my additions as described above. You can find the instruction how to compile these test and other programs, using the library, in the file “TEST_FILES.txt” in that folder.
