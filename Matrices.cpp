@@ -464,27 +464,14 @@ EncryptedMatrix EncryptedMatrix::operator*=(const EncryptedMatrix& other){ retur
 
 //mult by constant
 EncryptedMatrix EncryptedMatrix::operator*(unsigned int num) const {
-    if(num == 2)
-        return (*this)+(*this);
     if(num == 1)
         return *this;
     if(num == 0) //return 0's matrix in the same size
         return EncryptedMatrix(vector<Ctxt>(matrix.size(), Ctxt(matrix[0].getPubKey())), getMatrixSize());
     
-    EncryptedMatrix copy = *this, res = *this;
-    bool isEmpty = true;
-    vector<bool> binary = intToBinary(num);
-    
-    for(unsigned int i=0, sz = binary.size(); i < sz; i++){
-        if(binary[i]){
-            if(isEmpty)
-                res = copy;
-            else
-                res += copy;
-            isEmpty = false;
-        }
-        copy *= 2;
-    }
+    EncryptedMatrix res = *this;
+    for(unsigned int i=0, sz = matrix.size(); i < sz; i++)
+        res[i].multByConstant(to_ZZX(num));
     
     return res;
 }
@@ -669,7 +656,7 @@ MatSize EncryptedMatrix::getMatrixSize() const { return matrixSize; }
 
 //Debug operations
 
-EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other, bool logFile) const{
+EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other, bool logFile, bool relinearation) const{
     //check sizes
     if(!matrixSize.canMultiply(other.matrixSize)){
         cout << "ERROR! The matrices must be with suitable sizes!" << endl;
@@ -711,7 +698,11 @@ EncryptedMatrix EncryptedMatrix::debugMul(const EncryptedMatrix& other, bool log
             }
             cout.flush();
             cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - mul                  \r";
-            B *= matrix[j];  //* A_j
+            if(relinearation)
+                B.multiplyBy(matrix[j]);  //* A_j using relinearation
+            else
+                B *= matrix[j];  //* A_j
+            
             cout.flush();
             cout << "i: " << i+1 << " of " << k << ", j: " << j+1 << " of " << m << " - add                  \r";
             res[i] += B;

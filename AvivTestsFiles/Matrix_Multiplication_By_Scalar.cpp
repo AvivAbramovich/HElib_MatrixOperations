@@ -37,16 +37,14 @@ bool isPrime(long num){
     return true;
 }
 
+long power(long p, long r){
+    if(r ==0)
+        return 1;
+    long ret = power(p, r/2);
+    return ret*ret*(r%2 ? p : 1);
+}
+
 int main(){
-    /*
-    long m=0, r=1; // Native plaintext space
-    int p = 65539; // Computations will be 'modulo p'
-    long L=16;          // Levels
-    long c=3;           // Columns in key switching matrix
-    long w=64;          // Hamming weight of secret key
-    long d=0;
-    long s = 0;  //minimum number of slots  [ default=0 ]
-    long security = 128;*/
     long m, r, p, L, c, w, s, d, security, enc, dec, encMul, recommended;
     char tempChar;
     bool toPrint = false, toSave = false;
@@ -151,9 +149,9 @@ int main(){
     // constuct an Encrypted array object ea that is
     // associated with the given context and the polynomial G
     
-    long nslots = ea.size();
+    long nslots = ea.size(), field = power(p,r);
     cout << "nslots: " << nslots << endl ;
-    cout << "Computations will be modulo " << p << endl;
+    cout << "Computations will be modulo " << field << endl;
     cout << "m: " << m << endl;
     
     unsigned int sz1, sz2, num;
@@ -175,7 +173,7 @@ int main(){
     cin >> num;
     
     MatSize sz(sz1, sz2);
-    PTMatrix PTmat(sz,p);  //random matrix in size origSize1
+    PTMatrix PTmat(sz,field);  //random matrix in size origSize1
     
     while(true){
         cout << "Print the matrices?" << endl;
@@ -237,7 +235,7 @@ int main(){
     for(unsigned int i=1; i < num; i++){
         PTres += PTmat;
     }
-    PTres %= p;
+    PTres %= field;
     if(toPrint)
         PTres.print("pt Solution: ");
     

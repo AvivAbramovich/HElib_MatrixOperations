@@ -64,31 +64,12 @@ PTMatrix evalOperator(PTMatrix& mat1, PTMatrix& mat2, unsigned int op){
 
 int main(){
     
-    /*
-    long m=0, r=1; // Native plaintext space
-    int p = 65539; // Computations will be 'modulo p'
-    long L=16;          // Levels
-    long c=3;           // Columns in key switching matrix
-    long w=64;          // Hamming weight of secret key
-    long d=0;
-    long s = 0;  //minimum number of slots  [ default=0 ]
-    long security = 128;*/
-    long m, r, p=2, L, c, w, s, d, security, enc1, enc2, dec, comparingEnc, comparingPT, recommended;
+    long m, r = 1, p=2, L, c, w, s, d, security, enc1, enc2, dec, comparingEnc, comparingPT, recommended;
     
     //Scan parameters
     
     cout << "Enter HElib's keys paramter. Enter zero for the recommended values" << endl;
-    cout << "P = 2" << endl;
-    while(true){
-        recommended = 1;
-        cout << "Enter r (recommended " << recommended <<"): ";
-        cin >> r;
-        if(r == 0)
-            r = recommended;
-        if(r > 0)
-            break;
-        cout << "Error! r must be a positive number!" << endl;
-    }
+    cout << "P = 2, r = 1" << endl;
     while(true){
         recommended = 16;
         cout << "Enter L (recommended " << recommended <<"): ";

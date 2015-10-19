@@ -37,6 +37,13 @@ bool isPrime(long num){
     return true;
 }
 
+long power(long p, long r){
+    if(r ==0)
+        return 1;
+    long ret = power(p, r/2);
+    return ret*ret*(r%2 ? p : 1);
+}
+
 int main(){
     
     cout << "This experiment check for different values of parameters, how much time it takes to encrypt and decrypt a \"full\" matrix (nslots*nslots), and multply 2 encrypted matrices\nAlso check for what size of matrices, the multiplication in the server on the encrypted data is faster than for the user than do all the work on his machine. Using this formula: N > n(P)*(2*Enc(P)+Dec(P)) when:\nP is the parameters\nn(P) is the nslots value for these values\nEnc(P) and Dec(P) is the time it takes to encrypt and decrypt the matrics in size nslots*nslots\nNOTE: this formula don't take into account the time it takes to send and recieve the data to and from the server, and the time it took to the server to do the actual multiplication\n" << endl;
@@ -154,9 +161,9 @@ int main(){
     // constuct an Encrypted array object ea that is
     // associated with the given context and the polynomial G
     
-    long nslots = ea.size();
+    long nslots = ea.size(), field = power(p,r);
     cout << "nslots: " << nslots << endl ;
-    cout << "Computations will be modulo " << p << endl;
+    cout << "Computations will be modulo " << field << endl;
     cout << "m: " << m << endl;
     
     unsigned int sz1, sz2, sz3;
@@ -181,7 +188,7 @@ int main(){
             break;
         cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
     }
-    PTMatrix PTmat1(MatSize(sz1, sz2),p), PTmat2(MatSize(sz2, sz3), p);  //random matrix in size origSize1
+    PTMatrix PTmat1(MatSize(sz1, sz2),field), PTmat2(MatSize(sz2, sz3), field);  //random matrix in size origSize1
     
     while(true){
         cout << "To multiply the encrypted matrices? Not affecting the formula, just for statistic" << endl;
@@ -278,7 +285,7 @@ int main(){
         res.print("Solution: ");
     
     resetTimers();
-    PTMatrix PTres = PTmat1.mulWithMod(PTmat2,p); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
+    PTMatrix PTres = PTmat1.mulWithMod(PTmat2,field); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
     ptMul = stopTimers("to multiply the regular matrices");
     
     if(toSave){

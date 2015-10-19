@@ -38,6 +38,13 @@ bool isPrime(long num){
     return true;
 }
 
+long power(long p, long r){
+    if(r ==0)
+        return 1;
+    long ret = power(p, r/2);
+    return ret*ret*(r%2 ? p : 1);
+}
+
 int main(){
     
     cout << "This experiment check for different values of parameters, how much time it takes to encrypt and decrypt a \"full\" matrix (nslots*nslots), and multply 2 encrypted matrices\nAlso check for what size of matrices, the multiplication in the server on the encrypted data is faster than for the user than do all the work on his machine. Using this formula: N > n(P)*(2*Enc(P)+Dec(P)) when:\nP is the parameters\nn(P) is the nslots value for these values\nEnc(P) and Dec(P) is the time it takes to encrypt and decrypt the matrics in size nslots*nslots\nNOTE: this formula don't take into account the time it takes to send and recieve the data to and from the server, and the time it took to the server to do the actual multiplication\n" << endl;
@@ -51,7 +58,7 @@ int main(){
     long d=0;
     long s = 0;  //minimum number of slots  [ default=0 ]
     long security = 128;*/
-    long m, r, p, L, c, w, s, d, security, enc1, enc2, dec, encMul, ptMul, recommended;
+    long m, r, p,L, c, w, s, d, security, enc1, enc2, dec, encMul, ptMul, recommended;
     char tempChar;
     bool toEncMult, toPrint;
     
@@ -155,9 +162,9 @@ int main(){
     // constuct an Encrypted array object ea that is
     // associated with the given context and the polynomial G
     
-    long nslots = ea.size();
+    long nslots = ea.size(), field = power(p,r);
     cout << "nslots: " << nslots << endl ;
-    cout << "Computations will be modulo " << p << endl;
+    cout << "Computations will be modulo " << field << endl;
     cout << "m: " << m << endl;
     
     unsigned int sz1;
@@ -170,7 +177,7 @@ int main(){
     }
     
     MatSize atom(nslots,nslots), sqr(sz1,sz1);
-    PTMatrix mat1(sqr, p), mat2(sqr, p);
+    PTMatrix mat1(sqr, field), mat2(sqr, field);
     PTMatrixGrid grid1(mat1, atom), grid2(mat2, atom);
     
     //save the grids
@@ -241,7 +248,7 @@ int main(){
         reunionGrid.print("Solution: ");
     
     resetTimers();
-    PTMatrix PTres = mat1.mulWithMod(mat2,p); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
+    PTMatrix PTres = mat1.mulWithMod(mat2,field); //like (PTmat1*PTmat2)%p but do modulu after each multiplication to avoid overflow
     ptMul = stopTimers("to multiply the regular matrices");
     
     if(toPrint)
