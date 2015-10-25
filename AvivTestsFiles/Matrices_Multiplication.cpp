@@ -27,21 +27,31 @@ void stopTimers(string label=""){
 }
 
 int main(){
-    /* On our trusted system we generate a new key
-     * (or read one in) and encrypt the secret data set.
-     */
+    long p,r,m;
+    while(true){
+        cout << "Enter the field of the computations (a prime number): ";
+        cin >> p;
+        if(isPrime(p))
+            break;
+        cout << "Error! p must be a prime number! " << endl;
+    }
+    while(true){
+        recommended = 1;
+        cout << "Enter r (recommended " << recommended <<"): ";
+        cin >> r;
+        if(r == 0)
+            r = recommended;
+        if(r > 0)
+            break;
+        cout << "Error! r must be a positive number!" << endl;
+    }
+    
     cout << "Generating public and secret keys..." << endl;
     resetTimers();
-    long m=0, r=1; // Native plaintext space
-    int p = 65539; // Computations will be 'modulo p'
     long L=16;          // Levels
     long c=3;           // Columns in key switching matrix
     long w=64;          // Hamming weight of secret key
-    //long d=0;
-    //long s = 0;  //minimum number of slots  [ default=0 ]
-    //long security = 128;
     ZZX G;
-    //m = FindM(security,L,c,p, d, s, 0);
     cout << "enter m: " << endl;
     cin >> m;
     FHEcontext context(m, p, r);
@@ -67,6 +77,7 @@ int main(){
     long nslots = ea.size();
     cout << "nslots: " << nslots << endl ;
     cout << "Computations will be modulo " << p << endl;
+    cout << "Estimated security: " << context.securityLevel() << endl;
     
     stopTimers("to generate keys");
     
