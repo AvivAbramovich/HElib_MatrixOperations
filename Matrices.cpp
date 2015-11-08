@@ -38,13 +38,6 @@ Ctxt getNotVector(const EncryptedArray& ea, const FHEPubKey& publicKey){
     ea.encrypt(not_ctxt, publicKey, not_vec);
     return not_ctxt;
 }
-
-vector<bool> intToBinary(unsigned int num){
-    vector<bool> res;
-    for(; num; num/=2)
-        res.push_back(num%2);
-    return res;
-}
 /* --------------------- MatSize (matrices size operations) class --------------------*/
 MatSize::MatSize(unsigned int first, unsigned int second): rows(first), columns(second) {}
 
@@ -77,7 +70,8 @@ bool MatSize::isSquare() const { return rows==columns; }
 
 /* --------------------- PTMatrix (Plain Text Matrix) class --------------------------*/
 
-PTMatrix::PTMatrix(vector<vector<long> > _matrix, bool diagonal){
+PTMatrix::PTMatrix(vector<vector<long> > _matrix, bool diagonal)
+{
     if(diagonal)
         matrix = _matrix;
     else{ //transform from regular (rows order) representation to diagonal
@@ -293,7 +287,7 @@ PTMatrix PTMatrix::operator+(const PTMatrix& other) const{
     vector<vector<long> > res = matrix;
     for(unsigned int i=0; i < rows; i++)
         for(unsigned int j=0; j < cols; j++)
-            res[j][i] = matrix[j][i]+other[j][i];
+            res[j][i] += other[j][i];
     return PTMatrix(res, true);
 }
 
@@ -305,11 +299,11 @@ PTMatrix PTMatrix::operator-(const PTMatrix& other) const{
         throw MatricesSizesNotMatch(getMatrixSize(), other.getMatrixSize());
     
     unsigned int rows = getRows(), cols = getColumns();
-    vector<vector<long> > res(rows, vector<long>(cols,0));
+    vector<vector<long> > res = matrix;
     for(unsigned int i=0; i < rows; i++)
         for(unsigned int j=0; j < cols; j++)
-            res[i][j] = matrix[i][j]-other[i][j];
-    return PTMatrix(res, false);
+            res[j][i] -= other[j][i];
+    return PTMatrix(res, true);
 
 }
 

@@ -45,7 +45,7 @@ private:
     const vector<long>& operator[](unsigned int i) const;
 public:
     //C'tors
-    PTMatrix(vector<vector<long> > _matrix, bool diagonal=true);
+    PTMatrix(vector<vector<long> > _matrix, bool diagonal=true);    //bool diagonal - if the matrix is already in diagonal order. If it false, the constructor will convert it first to diagonal order
     PTMatrix(MatSize sizes, unsigned int numbersLimit = 10);   //random matrix
     PTMatrix(ifstream& file); //read the matrix from a file
     
