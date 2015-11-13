@@ -318,7 +318,7 @@ PTMatrix PTMatrix::operator>(const PTMatrix& other) const {
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
         for(unsigned int j=0; j < sz2; j++)
-            res[i][j] = matrix[i][j] > other[i][j];
+            res[j][i] = matrix[j][i] > other[j][i];
     return PTMatrix(res, true);
 }
 
@@ -331,7 +331,7 @@ PTMatrix PTMatrix::operator<(const PTMatrix& other) const {
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
         for(unsigned int j=0; j < sz2; j++)
-            res[i][j] = matrix[i][j] < other[i][j];
+            res[j][i] = matrix[j][i] < other[j][i];
     return PTMatrix(res, true);
 }
 
@@ -344,7 +344,7 @@ PTMatrix PTMatrix::operator>=(const PTMatrix& other) const {
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
         for(unsigned int j=0; j < sz2; j++)
-            res[i][j] = matrix[i][j] >= other[i][j];
+            res[j][i] = matrix[j][i] >= other[j][i];
     return PTMatrix(res, true);
 }
 
@@ -357,7 +357,7 @@ PTMatrix PTMatrix::operator<=(const PTMatrix& other) const {
     vector<vector<long> > res(sz1, vector<long>(sz2));
     for(unsigned int i=0; i < sz1; i++)
         for(unsigned int j=0; j < sz2; j++)
-            res[i][j] = matrix[i][j] <= other[i][j];
+            res[j][i] = matrix[j][i] <= other[j][i];
     return PTMatrix(res, true);
 }
 
