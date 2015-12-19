@@ -26,8 +26,32 @@ void stopTimers(string label=""){
         cout << "It took " << difftime(time_stop, time_begin) << " seconds and " << clock_stop-clock_begin<< " clock ticks " << label << endl;
 }
 
+bool isPrime(long num){
+    if(num < 2)
+        return false;
+    for(unsigned int i=2; i*i <= num; i++){
+        if(num%i == 0)
+            return false;
+    }
+    return true;
+}
+
+long power(long base, long exponent){
+	if(exponent == 1)
+		return base;
+	long res = power(base, exponent/2);
+	return res*res*(exponent%2 ? base : 1);
+}
+
 int main(){
-    long p,r,m;
+    long m, r, p, L, c, w, s, d, security, enc1, enc2, dec, encMul, ptMul, recommended;
+    char tempChar;
+    bool toEncMult = false, toPrint = false, debugMul = false, toSave = false;
+    
+    //Scan parameters
+    
+    cout << "Enter HElib's keys paramter. Enter zero for the recommended values" << endl;
+    
     while(true){
         cout << "Enter the field of the computations (a prime number): ";
         cin >> p;
@@ -45,15 +69,67 @@ int main(){
             break;
         cout << "Error! r must be a positive number!" << endl;
     }
+    while(true){
+        recommended = 16;
+        cout << "Enter L (recommended " << recommended <<"): ";
+        cin >> L;
+        if(L == 0)
+            L = recommended;
+        if(L > 0)
+            break;
+        cout << "Error! L must be a positive number!" << endl;
+    }
+    while(true){
+        recommended = 3;
+        cout << "Enter c (recommended " << recommended <<"): ";
+        cin >> c;
+        if(c == 0)
+            c = recommended;
+        if(c > 0)
+            break;
+        cout << "Error! c must be a positive number!" << endl;
+    }
+    while(true){
+        recommended = 128;
+        cout << "Enter security (recommended " << recommended << "): ";
+        cin >> security;
+        if(security == 0)
+            security = recommended;
+        if(security > 0)
+            break;
+        cout << "Error! security must be a positive number " << endl;
+    }
+    while(true){
+        recommended = 64;
+        cout << "Enter w (recommended " << recommended <<"): ";
+        cin >> w;
+        if(w == 0)
+            w = recommended;
+        if(w > 1)
+            break;
+        cout << "Error! w must be a positive number!" << endl;
+    }
+    while(true){
+        recommended = 0;
+        cout << "Enter d (recommended " << recommended <<"): ";
+        cin >> d;
+        if(d >= 0)
+            break;
+        cout << "Error! d must be a positive or zero!" << endl;
+    }
+    while(true){
+        recommended = 0;
+        cout << "Enter s (recommended " << recommended <<"): ";
+        cin >> s;
+        if(s >= 0)
+            break;
+        cout << "Error! s must be a positive or zero!" << endl;
+    }
     
     cout << "Generating public and secret keys..." << endl;
     resetTimers();
-    long L=16;          // Levels
-    long c=3;           // Columns in key switching matrix
-    long w=64;          // Hamming weight of secret key
     ZZX G;
-    cout << "enter m: " << endl;
-    cin >> m;
+    m = FindM(security,L,c,p, d, s, 0);
     FHEcontext context(m, p, r);
     // initialize context
     buildModChain(context, L, c);
@@ -75,8 +151,9 @@ int main(){
     // associated with the given context and the polynomial G
     
     long nslots = ea.size();
+	long field = power(p,r);
     cout << "nslots: " << nslots << endl ;
-    cout << "Computations will be modulo " << p << endl;
+    cout << "Computations will be modulo " << field << endl;
     cout << "Estimated security: " << context.securityLevel() << endl;
     
     stopTimers("to generate keys");
@@ -137,7 +214,7 @@ int main(){
     stopTimers("to decrypt the result");
     res.print("Solution: ");
     
-    PTMatrix PTres = (PTmat1*PTmat2)/*%p*/;
+    PTMatrix PTres = (PTmat1*PTmat2)%field;
     PTres.print("pt result: ");
     
     cout << "is correct? " << (res==PTres) << endl;
