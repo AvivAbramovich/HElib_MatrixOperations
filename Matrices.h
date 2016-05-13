@@ -21,6 +21,7 @@ public:
     MatSize operator*(const MatSize& other) const;          //The size of the matrix get by multiply the 2 matrices
     MatSize operator*=(const MatSize& other);
     MatSize transpose();
+    MatSize getTransposed() const;
     
     bool operator==(const MatSize& other) const;            //Is these 2 matrices have the same sizes?
     bool operator!=(const MatSize& other) const;
@@ -45,7 +46,7 @@ private:
     const vector<long>& operator[](unsigned int i) const;
 public:
     //C'tors
-    PTMatrix(vector<vector<long> > _matrix, bool diagonal=true);    //bool diagonal - if the matrix is already in diagonal order. If it false, the constructor will convert it first to diagonal order
+    PTMatrix(vector<vector<long> > _matrix, bool diagonal=true);
     PTMatrix(MatSize sizes, unsigned int numbersLimit = 10);   //random matrix
     PTMatrix(ifstream& file); //read the matrix from a file
     
@@ -82,6 +83,9 @@ public:
     PTMatrix operator-(const PTMatrix& other) const;
     PTMatrix operator-=(const PTMatrix& other);
     
+    //Transpose
+    PTMatrix transpose() const;
+    
     PTMatrix operator>(const PTMatrix& other) const;
     PTMatrix operator<(const PTMatrix& other) const;
     PTMatrix operator>=(const PTMatrix& other) const;
@@ -99,6 +103,7 @@ public:
     
     //for debug
     PTMatrix mulWithMod(const PTMatrix& other, long p) const; //same as operator* but do mod after each mult to avoid overflow as possible
+    void debugPrintDiagonalMatrixVector();
 };
 
 //This class represents an encrypted matrix.
@@ -132,6 +137,9 @@ public:
     EncryptedMatrix operator-(const EncryptedMatrix& other) const;
     EncryptedMatrix operator-=(const EncryptedMatrix& other);
     
+    //Transpose
+    EncryptedMatrix transpose() const;
+    
     //the comparing operators (<, >, <= and >=) WORKING ONLY FOR BINARY FIELDS (P=2)
     EncryptedMatrix operator>(const EncryptedMatrix& other) const;
     EncryptedMatrix operator<(const EncryptedMatrix& other) const;
@@ -150,7 +158,7 @@ public:
     MatSize getMatrixSize() const;                  //returns the matrix size as MatSize object
     
     //debug operators
-    EncryptedMatrix debugMul(const EncryptedMatrix& other, bool logFile = true) const;
+    EncryptedMatrix debugMul(const EncryptedMatrix& other, bool logFile = true, bool relinearation = false) const;
     EncryptedMatrix debugAdd(const EncryptedMatrix& other, bool logFile = true) const;
 };
 
@@ -167,6 +175,20 @@ public:
 private:
     MatSize sz1, sz2;
     static ostringstream cnvt;
+};
+
+class MatrixNotSquareException : public runtime_error{
+private:
+    MatSize sz;
+    static ostringstream cnvt;
+public:
+    MatrixNotSquareException(const MatSize& size) : runtime_error("Matrix should be square"), sz(size) {}
+    const char* what(){
+        cnvt.str( "" );
+        cnvt << runtime_error::what() << ": Matrix dimmensions: " << sz.rows << "x" << sz.columns;
+        return cnvt.str().c_str();
+    }
+    ~MatrixNotSquareException() throw() {};
 };
 
 class NotBinaryField:public runtime_error{

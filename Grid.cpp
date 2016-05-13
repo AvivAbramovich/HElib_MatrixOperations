@@ -246,6 +246,15 @@ PTMatrixGrid PTMatrixGrid::operator-(const PTMatrixGrid& other) const {
 }
 PTMatrixGrid PTMatrixGrid::operator-=(const PTMatrixGrid& other) { return (*this) = (*this)-other;}
 
+//trnapose
+PTMatrixGrid PTMatrixGrid::transpose() const{
+    vector<vector<PTMatrix>> transposedGrid(this->grid[0].size());
+    for(int i = 0; i < this->grid[0].size(); i++)
+        for(int j = 0; j < this->grid.size(); j++)
+            transposedGrid[i][j] = this->grid[j][i];
+    return PTMatrixGrid(transposedGrid);
+}
+
 PTMatrixGrid PTMatrixGrid::operator>(const PTMatrixGrid& other) const {
     if(getGridSize() != other.getGridSize()) //check sizes
         throw MatricesSizesNotMatch(getGridSize(), other.getGridSize());
@@ -443,6 +452,14 @@ EncryptedMatrixGrid EncryptedMatrixGrid::operator-(const EncryptedMatrixGrid& ot
 }
 
 EncryptedMatrixGrid EncryptedMatrixGrid::operator-=(const EncryptedMatrixGrid& other){ return ((*this) = (*this)-other); }
+
+EncryptedMatrixGrid EncryptedMatrixGrid::transpose() const{
+    vector<vector<EncryptedMatrix>> transposedGrid(this->grid[0].size());
+    for(int i = 0; i < this->grid[0].size(); i++)
+        for(int j = 0; j < this->grid.size(); j++)
+            transposedGrid[i][j] = this->grid[j][i];
+    return EncryptedMatrixGrid(transposedGrid);
+}
 
 EncryptedMatrixGrid EncryptedMatrixGrid::operator>(const EncryptedMatrixGrid& other) const {
     if(getGridSize() != other.getGridSize())

@@ -51,7 +51,9 @@ MatSize MatSize::operator*(const MatSize& other) const{
     return MatSize(rows, other.columns);
 }
 
-MatSize MatSize::transpose() { return ((*this) = MatSize(columns, rows)); }
+MatSize MatSize::transpose() { return ((*this) = MatSize(this->columns, this->rows)); }
+
+MatSize MatSize::getTransposed() const { return MatSize(this->columns, this->rows); }
 
 MatSize MatSize::operator*=(const MatSize& other) { return ((*this) = (*this)*other); }
 
@@ -309,6 +311,15 @@ PTMatrix PTMatrix::operator-(const PTMatrix& other) const{
 
 PTMatrix PTMatrix::operator-=(const PTMatrix& other){ return (*this) = (*this)-other; }
 
+PTMatrix PTMatrix::transpose() const{
+    MatSize transposedSize = this->getMatrixSize().getTransposed();
+    vector<vector<long>> transposedMatrix(transposedSize.rows, vector<long>(transposedSize.columns, 0));
+    for(int i = 0; i < transposedSize.rows; i++)
+        for(int j = 0; j < transposedSize.columns; j++)
+            transposedMatrix[i][j] = (*this)(j,i);
+    return PTMatrix(transposedMatrix, false);
+}
+
 PTMatrix PTMatrix::operator>(const PTMatrix& other) const {
     //check sizes
     if(matrix.size() != other.size() || matrix[0].size() != other[0].size())
@@ -397,6 +408,16 @@ PTMatrix PTMatrix::mulWithMod(const PTMatrix& other, long p) const {
     return PTMatrix(res, false);
 }
 
+void PTMatrix::debugPrintDiagonalMatrixVector(){
+    for(int i = 0; i < this->size(); i++)
+    {
+        vector<long> vec = this->matrix[i];
+        cout << "vec #" << i << ": [";
+        for(int j=0; j < vec.size(); j++)
+            cout << vec[j] << " ";
+        cout << "]" << endl;
+    }
+}
 
 /* --------------------- EncryptedMatrix class -------------*/
 EncryptedMatrix::EncryptedMatrix(const vector<Ctxt>& encMatrix, const MatSize& origSize): matrix(encMatrix), matrixSize(origSize) {}
@@ -425,7 +446,6 @@ EncryptedMatrix EncryptedMatrix::operator*(const EncryptedMatrix& other) const
     Ctxt vec = matrix[0]; //save it for faster vec.getPubKey() in the loop
     EncryptedArray ea(vec.getContext());
     bool squares = getMatrixSize().isSquare() && other.getMatrixSize().isSquare() && getRows()==ea.size();  //Use the square matrices formula (much faster)
-    //cout << "Square matrices formula? " << squares << endl;
     vector<Ctxt> res;
     int n = getRows(), m = getColumns(), k = other.getColumns(); //sizes: A(this):n*m, B(other):m*k
     for(int i=0; i < k; i++){
@@ -493,6 +513,39 @@ EncryptedMatrix EncryptedMatrix::operator-(const EncryptedMatrix& other) const{
     for(unsigned int i=0, len = matrix.size(); i < len; i++)
         ret[i] -= other.matrix[i];
     return EncryptedMatrix(ret, matrixSize);
+}
+
+/*
+ *  ATTENTION : for now works ONLY for square matrices
+ *  Formula : B_i = A_(-i mod n) <<< i
+ */
+EncryptedMatrix EncryptedMatrix::transpose() const{
+    if(!this->matrixSize.isSquare()){
+        throw MatrixNotSquareException(this->matrixSize);
+    }
+    
+    EncryptedArray ea(matrix[0].getContext());
+    const int fullSize = (int)ea.size();
+    const int size = (int)matrix.size();
+    int gap = fullSize - size;
+        
+    vector<Ctxt> result;
+    
+    for(int i = 0; i < size; i++){
+        Ctxt b_i = matrix[myModulu(-i,size)];
+        if(gap){
+            Ctxt rightPart(b_i);
+            ea.shift(b_i, -i);
+            ea.shift(rightPart, fullSize - i);
+            ea.shift(rightPart, -gap);
+            b_i += rightPart;
+        }
+        else{
+            ea.rotate(b_i, -i);
+        }
+        result.push_back(b_i);
+    }
+    return EncryptedMatrix(result, matrixSize.getTransposed()); //can also be matrixSize, because it square matrix
 }
 
 //comparison operator (>, <, >= and <=)
