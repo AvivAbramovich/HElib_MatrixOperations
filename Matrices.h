@@ -177,20 +177,6 @@ private:
     static ostringstream cnvt;
 };
 
-class MatrixNotSquareException : public runtime_error{
-private:
-    MatSize sz;
-    static ostringstream cnvt;
-public:
-    MatrixNotSquareException(const MatSize& size) : runtime_error("Matrix should be square"), sz(size) {}
-    const char* what(){
-        cnvt.str( "" );
-        cnvt << runtime_error::what() << ": Matrix dimmensions: " << sz.rows << "x" << sz.columns;
-        return cnvt.str().c_str();
-    }
-    ~MatrixNotSquareException() throw() {};
-};
-
 class NotBinaryField:public runtime_error{
 public:
     NotBinaryField(): runtime_error("For this operation, the plain text space MUST be binary!") {};

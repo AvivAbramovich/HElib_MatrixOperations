@@ -516,36 +516,46 @@ EncryptedMatrix EncryptedMatrix::operator-(const EncryptedMatrix& other) const{
 }
 
 /*
- *  ATTENTION : for now works ONLY for square matrices
- *  Formula : B_i = A_(-i mod n) <<< i
+ *  Square Formula : B_i = A_(-i mod n) <<< i
+ *  NonSquare Formula : TODO: formile the formula
  */
 EncryptedMatrix EncryptedMatrix::transpose() const{
-    if(!this->matrixSize.isSquare()){
-        throw MatrixNotSquareException(this->matrixSize);
-    }
-    
     EncryptedArray ea(matrix[0].getContext());
     const int fullSize = (int)ea.size();
-    const int size = (int)matrix.size();
-    int gap = fullSize - size;
+    int gap = fullSize - (int)this->matrixSize.rows;
+    bool isSquare = this->matrixSize.isSquare();
         
     vector<Ctxt> result;
     
-    for(int i = 0; i < size; i++){
-        Ctxt b_i = matrix[myModulu(-i,size)];
-        if(gap){
-            Ctxt rightPart(b_i);
-            ea.shift(b_i, -i);
-            ea.shift(rightPart, fullSize - i);
-            ea.shift(rightPart, -gap);
-            b_i += rightPart;
+    for(int i = 0; i < this->matrixSize.rows; i++){
+        Ctxt b_i(this->matrix[myModulu(-i,this->matrixSize.columns)]);
+        if(isSquare){
+            if(gap){
+                Ctxt rightPart(b_i);
+                ea.shift(b_i, -i);
+                ea.shift(rightPart, fullSize - i);
+                ea.shift(rightPart, -gap);
+                b_i += rightPart;
+            }
+            else{
+                ea.rotate(b_i, -i); //rotate i left
+            }
         }
         else{
-            ea.rotate(b_i, -i);
+            ea.shift(b_i, -i); //shift i left
+            int countItems = this->matrixSize.rows - i;
+            for(int j = 1 ; countItems < this->matrixSize.columns; j++){ //Probably one of these parameters wrong
+                Ctxt addition(this->matrix[myModulu(-i + j*this->matrixSize.rows,this->matrixSize.columns)]);
+                ea.shift(addition, countItems); //shift countItems right
+                b_i += addition;
+                countItems += this->matrixSize.rows;
+            }
         }
+        
         result.push_back(b_i);
     }
-    return EncryptedMatrix(result, matrixSize.getTransposed()); //can also be matrixSize, because it square matrix
+    
+    return EncryptedMatrix(result, this->matrixSize.getTransposed());
 }
 
 //comparison operator (>, <, >= and <=)

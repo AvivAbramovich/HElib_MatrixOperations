@@ -149,19 +149,24 @@ int main(){
     cout << "nslots: " << nslots << endl ;
     cout << "Computations will be modulo " << field << endl;
     cout << "m: " << m << endl;
-    unsigned int sz;
+    unsigned int sz1, sz2;
     while(true){
-        cout << "Enter the matrix size: ";
-        cin >> sz;
-        if(sz > 1 && sz <= nslots)
+        cout << "Enter the matrix number of rows: ";
+        cin >> sz1;
+        if(sz1 > 1 && sz1 <= nslots)
             break;
         cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
     }
-    MatSize size(sz, sz);
-    cout << "sz: " << sz << endl;
-    cout << "matSize: ";
-    size.print();
+    while(true){
+        cout << "Enter the matrix number of columns: ";
+        cin >> sz2;
+        if(sz2 > 1 && sz2 <= nslots)
+            break;
+        cout << "Error! the value must be between 1 to " << nslots << "!" << endl;
+    }
+    MatSize size(sz1, sz2);
     PTMatrix ptMat(size, field);  //random matrix in size origSize1
+    ptMat.debugPrintDiagonalMatrixVector();
     
     ptMat.print();
     
@@ -184,11 +189,18 @@ int main(){
     stopTimers("to decrypt the result");
     
     PTMatrix ptRes = ptMat.transpose();
-    if(res != ptRes)
+    res.print("Solution: ");
+    
+    if(res != ptRes){
         cout << "Result not right!!" << endl;
+        cout << "vectors are: " << endl;
+        res.debugPrintDiagonalMatrixVector();
+        cout << "but should be: " << endl;
+        ptRes.debugPrintDiagonalMatrixVector();
+    }
     else
         cout << "Result right!!! :)" << endl;
 
-    res.print("Solution: ");
+    
     return 0;
 }
